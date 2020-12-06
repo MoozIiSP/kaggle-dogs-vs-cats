@@ -1,8 +1,6 @@
 import sys
 from collections import OrderedDict
 
-sys.path.append('/home/mooziisp/GitRepos/DLToolbox/application/Repos/Kaggle-dogs-vs-cats')
-
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
@@ -132,5 +130,5 @@ class LitTransferLearning(pl.LightningModule):
 
     def test_step(self, batch, batch_idx) -> None:
         x, im_ids = batch
-        preds = self(x).argmax(dim=1).detach().cpu().numpy()
+        preds = F.softmax(self(x), dim=1).detach().cpu().numpy()
         self.submission.update(im_ids, preds)

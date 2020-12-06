@@ -44,7 +44,7 @@ def run(cfg: DictConfig):
     trainer = pl.Trainer(logger=logger,
                          callbacks=[early_stopping, lr_monitor, gpu_monitor],
                          # nb_sanity_val_steps=0,
-                         gradient_clip_val=0.5,
+                         # gradient_clip_val=0.5,
                          **cfg.trainer)
     # BUG: trainer.tune(model)
 
@@ -64,7 +64,7 @@ def run(cfg: DictConfig):
 
 @hydra.main(config_path="conf", config_name="config")
 def run_model(cfg: DictConfig) -> None:
-    # print(OmegaConf.to_yaml(cfg))
+    print(OmegaConf.to_yaml(cfg))
     save_useful_info()
     run(cfg)
 

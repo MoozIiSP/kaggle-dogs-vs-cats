@@ -89,7 +89,7 @@ def export_to_submission(data_root: str, preds: Dict):
     for id, pred in track(preds.items(),
                                description='Write Results'):
         idx = int(os.path.basename(id).split('.')[0]) - 1
-        df.loc[idx, 'label'] = pred
+        df.loc[idx, 'label'] = pred[1]
     df.to_csv(os.path.join(data_root, 'EvalSubmission.csv'), index=False)
 
 
