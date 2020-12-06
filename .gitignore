@@ -1,0 +1,15 @@
+# Emacs Editor
+_dirs-locals.el
+
+# IDE Config
+.vs
+.idea
+.vscode
+.mypy_cache
+
+# Misc
+!outputs/
+
+# No Python cache
+.ipynb_checkpoints
+__pycache__

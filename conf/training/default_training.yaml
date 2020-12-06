@@ -1,0 +1,5 @@
+# @package _group_
+lr: 0.001
+metric: avg_loss
+seed: 42
+debug: False

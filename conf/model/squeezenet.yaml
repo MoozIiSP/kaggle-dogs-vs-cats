@@ -1,0 +1,29 @@
+# @package _group_
+class_name: squeezenet1_1
+bn_trainable: True
+depth: 1 # feat for first, classifier for second
+params:
+  pretrained: True
+head: # rebuild classifier or detector
+  last: 0  # 512
+  layers:
+    - class_name: torch.nn.Linear
+      params:
+        in_features: ${model.head.last}
+        out_features: ${data.num_classes}
+    # - class_name: torch.nn.Dropout
+    #   params:
+    #     p: 0.1
+    #     inplace: False
+    # - class_name: torch.nn.Conv2d # Conv1x1
+    #   params:
+    #     in_channels: ${model.head.last}
+    #     out_channels: ${data.num_classes}
+    #     kernel_size: 1
+    #     stride: 1
+    # - class_name: torch.nn.ReLU
+    #   params:
+    #     inplace: True
+    # - class_name: torch.nn.AdaptiveAvgPool2d
+    #   params:
+    #     output_size: 1

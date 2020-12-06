@@ -1,0 +1,29 @@
+# @package _group_
+early_stopping:
+  class_name: pl.callbacks.EarlyStopping
+  params:
+    monitor: ${training.metric}
+    patience: 50
+    mode: min
+
+model_checkpoint:
+  class_name: pl.callbacks.ModelCheckpoint
+  params:
+    monitor: ${training.metric}
+    save_top_k: 1
+    filepath: saved_models/
+
+lr_monitor:
+  class_name: pl.callbacks.LearningRateMonitor
+  params:
+    logging_interval: null
+
+gpu_monitor:
+  class_name: pl.callbacks.GPUStatsMonitor
+  params:
+    memory_utilization: True
+    gpu_utilization: True
+    intra_step_time: False
+    inter_step_time: False
+    fan_speed: False
+    temperature: True
