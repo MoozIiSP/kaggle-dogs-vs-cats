@@ -1,6 +1,6 @@
 defaults:
   - dataset: kaggle_dogs_vs_cats
-  - trainer: default_trainer
+  - trainer: debug_trainer
   - training: default_training
   - logging: tensorboard
   - optimizer: sgd

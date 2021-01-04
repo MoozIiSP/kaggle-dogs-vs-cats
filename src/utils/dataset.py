@@ -1,8 +1,5 @@
 import os
-import sys
 from typing import Dict, Tuple
-
-sys.path.append('/home/mooziisp/GitRepos/DLToolbox/application/Repos/Kaggle-dogs-vs-cats')
 
 import numpy as np
 import torch

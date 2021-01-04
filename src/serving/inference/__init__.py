@@ -1,5 +1,10 @@
+import sys
+
+from omegaconf.dictconfig import DictConfig
+sys.path.append('/home/mooziisp/GitRepos/Kaggle-dogs-vs-cats')
+
 from src.utils.utils import load_obj
-from typing import Any
+from typing import Any, Callable, Optional
 import onnx
 import onnxruntime as ort
 import psutil
@@ -7,6 +12,8 @@ from PIL import Image
 from io import BytesIO
 import albumentations as A
 import numpy as np
+
+import torch
 
 
 class _SingletonType(type):
@@ -32,9 +39,9 @@ class Inferencer(metaclass=_SingletonType):
     def register_env_var(self):
         raise NotImplemented
 
-    def load_model(self):
+    def load_model(self, onnx_model: Optional[str] = None):
         loader = load_obj(self.config.serving.loader)
-        self.sess = loader(self.config.serving.onnx_model)
+        self.sess = loader(self.config.serving.onnx_model if not onnx_model else onnx_model)
         self.classnames = {v: k for k, v in self.config.data.categories.items()}
 
     def eval(self, data):
@@ -42,16 +49,31 @@ class Inferencer(metaclass=_SingletonType):
         outputs = self.sess.run(None, {
             'input': im.unsqueeze(0).numpy()
         })
-        preds = np.argmax(outputs[0], axis=1)
-        return self.classnames[preds.item()]
+        pred = outputs[0]
+        # FIXME: This is a special method, so you should make it to be a function
+        #   and only eval one image once.
+        print(pred)
+        pred = torch.softmax(torch.as_tensor(pred%10).type(torch.float64), dim=1).detach().numpy()
+        print(pred)
+        # return prob map
+        return {
+            self.classnames[0]: pred[0][1],
+            self.classnames[1]: 1 - pred[0][1],
+        }
 
     def _data_pre_process(self, data):
         augs_list = [load_obj(i['class_name'])(**i['params']) for i in self.config['augmentation']['valid']['augs']]
         augs = A.Compose(augs_list)
 
-        data_dict = {
-            'image': np.array(Image.open(BytesIO(data)), dtype=np.float32),
-        }
+        # check data whether is bytes or numpy
+        if type(data) is bytes:
+            data_dict = {
+                'image': np.array(Image.open(BytesIO(data)), dtype=np.float32),
+            }
+        else:
+            data_dict = {
+                'image': data,
+            }
         image = augs(**data_dict)['image']
         return image
 
@@ -74,9 +96,16 @@ def onnxruntime_loader(model_path):
 
 
 if __name__ == "__main__":
+    import hydra
     import numpy as np
-    inferencer = Inferencer()
-    inferencer.load_model('/home/mooziisp/GitRepos/kaggle-dogs-vs-cats/resnet50-cats-vs-dogs.onnx',
-                          loader = onnx_loader)
-    inputs = {'input1': np.random.randn(8, 3, 224, 224).astype(np.float32)}
-    outputs = inferencer.eval(inputs)
+
+    @hydra.main(config_path="../../../conf", config_name="config")
+    def test(cfg: DictConfig):
+        inferencer = Inferencer()
+        inferencer.init(cfg)
+        inferencer.load_model()
+        inputs = np.random.randn(224, 224, 3).astype(np.float32)
+        outputs = inferencer.eval(inputs)
+        print(outputs)
+
+    test()

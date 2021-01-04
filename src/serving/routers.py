@@ -34,7 +34,8 @@ def api_inference():
         inferencer = Inferencer()
         results = {}
         for i, f in enumerate(files):
-            results[i] = inferencer.eval(f.read())
-        return jsonify({'status': 'OK', 'results': results})
+            results[f.filename] = inferencer.eval(f.read())
+        print(results)
+        return jsonify({'status': 'OK', 'scores': ''})
     else:
         return jsonify({'status': 'Wrong'})

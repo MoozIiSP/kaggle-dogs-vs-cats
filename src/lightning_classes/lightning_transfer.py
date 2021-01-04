@@ -63,7 +63,7 @@ class LitTransferLearning(pl.LightningModule):
             out = self.model[1](torch.flatten(out, 1))
         else:  # FIXME: dirty fix for squeezenet and other classifier layer is not consist of nn.Linear.
             out = torch.flatten(self.model[1](out), 1)
-        return out  # torch.sigmoid(out)
+        return torch.sigmoid(out)  # FIXME: 0~1
 
     def prepare_data(self) -> None:
         trainval = get_trainval_dataset(self.hparams)
@@ -103,10 +103,10 @@ class LitTransferLearning(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         x, y, _ = batch
-        y_hat = self(x)
+        y_hat = torch.softmax(self(x), dim=1)
         losses = self.criterion(y_hat, y)
 
-        self.log('train_loss', losses, on_step=True, prog_bar=False, logger=True)
+        # self.log('train_loss', losses, on_step=True, prog_bar=False, logger=True)
         self.log('train_log_loss', self.train_logloss(y_hat, F.one_hot(y)),
                  prog_bar=False, logger=True)
 
@@ -114,10 +114,10 @@ class LitTransferLearning(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         x, y, _ = batch
-        y_hat = self(x)
+        y_hat = torch.softmax(self(x), dim=1)
         losses = self.criterion(y_hat, y)
 
-        self.log('valid_loss', losses, on_epoch=True, prog_bar=False, logger=True)
+        # self.log('valid_loss', losses, on_epoch=True, prog_bar=False, logger=True)
         self.log('valid_acc', self.accuracy(y_hat, y), on_step=False, on_epoch=True, 
                  prog_bar=True, logger=True)
         self.log('valid_log_loss', self.valid_logloss(y_hat, F.one_hot(y)),

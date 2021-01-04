@@ -1,8 +1,6 @@
 # @package _group_
 gpus: 0
-# precision: 16
-# amp_level: O2
-max_epochs: 25 #5
+max_epochs: 5
 # weights_summary: full  # default
 # track_grad_norm: 2 # tracking grad norm when training
 # log_gpu_memory: True # conflict with GPU Monitor Callbacks?
@@ -13,5 +11,3 @@ fast_dev_run: True # fast debug, no log, no checkpoint.
 # limit_train_batches: 0.1
 # limit_val_batches: 0.1
 # limit_test_batches: 0.9
-# Train Trick
-# auto_scale_batch_size: power # binearch | none

@@ -30,7 +30,7 @@ def run(cfg: DictConfig):
 
     early_stopping = pl.callbacks.EarlyStopping(**cfg.callbacks.early_stopping.params)
     lr_monitor = pl.callbacks.LearningRateMonitor(**cfg.callbacks.lr_monitor.params)
-    gpu_monitor = pl.callbacks.GPUStatsMonitor(**cfg.callbacks.gpu_monitor.params)
+    # gpu_monitor = pl.callbacks.GPUStatsMonitor(**cfg.callbacks.gpu_monitor.params)
     # model_checkpoint = pl.callbacks.ModelCheckpoint(**cfg.callbacks.model_checkpoint.params)
 
     logger = [TensorBoardLogger(save_dir=cfg.general.save_dir)]
@@ -45,7 +45,7 @@ def run(cfg: DictConfig):
     #     )
 
     trainer = pl.Trainer(logger=logger,
-                         callbacks=[early_stopping, lr_monitor, gpu_monitor],
+                         callbacks=[early_stopping, lr_monitor], #, gpu_monitor],
                          # nb_sanity_val_steps=0,
                          # gradient_clip_val=0.5,
                          **cfg.trainer)
