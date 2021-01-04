@@ -13,6 +13,8 @@ from PIL import Image
 from sklearn.model_selection import train_test_split
 from src.utils.utils import load_obj
 from torch.utils.data import Dataset
+import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
 
 
 class KaggleDataset(Dataset):
@@ -162,6 +164,23 @@ def get_test_dataset(cfg: DictConfig):
                                  'test',
                                  data_augs)
     return test_dataset
+
+
+def plot_tensors(tensors: torch.Tensor, targets: Dict, figsize: Tuple[int, int], row: int = 4):
+    def to_cpu(t: torch.Tensor) -> torch.Tensor:
+        return t.detach().cpu()
+    bs = tensors.size(0)
+    plt.figure(figsize=figsize)
+    fig, axes = plt.subplots(bs//row, row, sharey=False)
+    for i in range(1, bs):
+        axes[i//row, i%row].imshow(to_cpu(tensors.index_select(0, i)).permute(1, 2, 0))
+        for box in targets['boxes']:
+            orig_xy = (box[0], box[1])
+            w, h = box[2] - box[0], box[3] - box[1]
+            rect = Rectangle(orig_xy, w, h, linewidth=1, edgecolor='r', facecolor='none')
+            # Add the patch to the Axes
+            axes[i//row, i%row].add_patch(rect)
+    plt.show()
 
 
 if __name__ == "__main__":

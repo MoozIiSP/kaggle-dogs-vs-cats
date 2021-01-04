@@ -24,6 +24,9 @@ def run(cfg: DictConfig):
     set_seed(cfg.training.seed)
 
     model = LitTransferLearning(hparams=cfg)
+    if cfg.training.resume:
+        ckpt = cfg.training.checkpoint
+        model.load_from_checkpoint(ckpt)
 
     early_stopping = pl.callbacks.EarlyStopping(**cfg.callbacks.early_stopping.params)
     lr_monitor = pl.callbacks.LearningRateMonitor(**cfg.callbacks.lr_monitor.params)

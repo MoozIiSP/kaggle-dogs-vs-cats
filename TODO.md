@@ -1,0 +1,8 @@
+- [x] 模型向在线服务部署
+- [ ] 模型向嵌入式设备部署
+- [ ] 模型部署与PyTorch Lightning框架进行分离
+- [x] 模型部署的推理性能测试
+- [ ] PyTorch Lightning的训练中断之后的再训练
+- [x] 模型剪枝
+- [ ] 将PyTorch Lightning和NNI AutoML技术相结合
+- [ ] https://pytorch.org/docs/stable/onnx.html#adding-support-for-operators

@@ -1,0 +1,7 @@
+torch>=1.7.0
+torchvision>=0.8.0a0
+hydra-core
+pytorch_lightning
+albumentations
+Flask
+rich

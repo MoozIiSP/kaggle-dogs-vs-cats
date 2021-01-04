@@ -8,9 +8,12 @@ _dirs-locals.el
 .mypy_cache
 
 # Misc
-*
+outputs/*
 !outputs/
 
 # No Python cache
 .ipynb_checkpoints
 __pycache__
+
+# No PyTorch
+*.pth

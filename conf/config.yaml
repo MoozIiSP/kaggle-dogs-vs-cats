@@ -11,6 +11,8 @@ defaults:
   - data: data
   - augmentation: basic_augs
   - loss: crossentropy
+  - serving: flask
+  - export: onnx
 
 general:
   save_dir: logs/

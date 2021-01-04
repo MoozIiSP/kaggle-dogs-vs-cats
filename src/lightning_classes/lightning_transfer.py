@@ -51,6 +51,7 @@ class LitTransferLearning(pl.LightningModule):
 
             return nn.Sequential(OrderedDict([
                 (f'{self.hparams.model.class_name}_backbone', backbone),
+                ('flatten', nn.Flatten(1)),
                 ('detection_head', head)
             ]))
         else:

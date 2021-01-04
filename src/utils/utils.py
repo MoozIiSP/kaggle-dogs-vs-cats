@@ -2,6 +2,7 @@ import importlib
 import os
 import random
 import shutil
+from collections import namedtuple
 from itertools import product
 from typing import Any, Callable, Dict, Generator, List, Optional
 
@@ -91,6 +92,45 @@ def export_to_submission(data_root: str, preds: Dict):
         idx = int(os.path.basename(id).split('.')[0]) - 1
         df.loc[idx, 'label'] = pred[1]
     df.to_csv(os.path.join(data_root, 'EvalSubmission.csv'), index=False)
+
+
+# Load same shape but prefix not same
+def reconstruct_state_dict(
+    src: Dict, target: Dict) -> Dict:
+    r"""Sequentially reconstructing state_dict as same as state_dict of target
+    model, so you must be sure that state_dict is suit for your model.
+    
+    Args:
+        state_dict: State dict of model.
+        target: State ditc of target model."""
+    unmatched_keys = []
+    error_msgs = []
+
+    for k1, k2 in zip(*(src.keys(), target.keys())):
+        if src[k1].shape == target[k2].shape:
+            target[k2] = src[k1]
+        else:
+            unmatched_keys.append((k1, k2))
+
+    if len(unmatched_keys) > 0:
+        error_msgs.insert(
+            0, 'Unmacthed key(s) in state_dict:\n{}. '.format(
+            '\n'.join(f"{k1} {src[k1].shape} \n\tvs {k2} {target[k2].shape}"
+                      for k1, k2 in unmatched_keys)))
+
+    if len(error_msgs) > 0:
+        raise RuntimeError('Error(s) in reconstructing state_dict: \n\t{}'.format(
+                            "\n\t".join(error_msgs)))
+    
+    class _IncompatibleKeys(namedtuple('IncompatibleKeys', ['unmatched_keys'])):
+        def __repr__(self):
+            if not self.unmatched_keys:
+                return '<All keys reconstructed successfully>'
+            return super(_IncompatibleKeys, self).__repr__()
+
+        __str__ = __repr__
+
+    return _IncompatibleKeys(unmatched_keys)
 
 
 # Refer to https://github.com/PyTorchLightning/pytorch-lightning/pull/1564/files
