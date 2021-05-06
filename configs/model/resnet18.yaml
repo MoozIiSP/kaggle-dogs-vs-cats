@@ -1,0 +1,18 @@
+_target_: project.models.classifier_model.ClassifierLitModel
+lr: 0.001
+cfg:
+  model_name: resnet18
+  pretrained: True
+  bn_trainable: True
+  depth: 9 #9
+
+  extra_cfg: null
+
+  head:
+    last: 0  # indicate that this layer need to flatten outputs from last layers
+    layers:
+      - _target_: torch.nn.Linear
+        in_features: ${model.cfg.head.last}
+        out_features: ${datamodule.num_classes}
+    act:
+      _target_: torch.nn.Sigmoid

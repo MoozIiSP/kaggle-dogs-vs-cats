@@ -1,0 +1,3 @@
+lr_monitor:
+  _target_: pl.callbacks.LearningRateMonitor
+  logging_interval: null

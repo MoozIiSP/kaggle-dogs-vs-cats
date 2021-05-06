@@ -1,76 +1,35 @@
-import os
-import shutil
-
+import dotenv
 import hydra
-import pytorch_lightning as pl
-import torch
-from omegaconf import DictConfig, OmegaConf
-from pytorch_lightning.loggers import CometLogger, TensorBoardLogger
+from omegaconf import DictConfig
 
-from src.lightning_classes.lightning_transfer import LitTransferLearning
-from src.utils.utils import export_to_submission, save_useful_info, set_seed
+# load environment variables from `.env` file if it exists
+# recursively searches for `.env` in all folders starting from work dir
+dotenv.load_dotenv(override=True)
 
 
-def run(cfg: DictConfig):
-    """
-    Run pytorch-lightning model
+@hydra.main(config_path="configs/", config_name="config.yaml")
+def main(config: DictConfig):
 
-    Args:
-        cfg: hydra config
+    # Imports should be nested inside @hydra.main to optimize tab completion
+    # Read more here: https://github.com/facebookresearch/hydra/issues/934
+    from project.train import train
+    from project.utils import template_utils
 
-    Returns:
+    # A couple of optional utilities:
+    # - disabling python warnings
+    # - easier access to debug mode
+    # - forcing debug friendly configuration
+    # - forcing multi-gpu friendly configuration
+    # You can safely get rid of this line if you don't want those
+    template_utils.extras(config)
 
-    """
-    set_seed(cfg.training.seed)
+    # Pretty print config using Rich library
+    if config.get("print_config"):
+        template_utils.print_config(config, resolve=True)
 
-    model = LitTransferLearning(hparams=cfg)
-    if cfg.training.resume:
-        ckpt = cfg.training.checkpoint
-        model.load_from_checkpoint(ckpt)
-
-    early_stopping = pl.callbacks.EarlyStopping(**cfg.callbacks.early_stopping.params)
-    lr_monitor = pl.callbacks.LearningRateMonitor(**cfg.callbacks.lr_monitor.params)
-    # gpu_monitor = pl.callbacks.GPUStatsMonitor(**cfg.callbacks.gpu_monitor.params)
-    # model_checkpoint = pl.callbacks.ModelCheckpoint(**cfg.callbacks.model_checkpoint.params)
-
-    logger = [TensorBoardLogger(save_dir=cfg.general.save_dir)]
-    # FIXME: Bad Network for Comet-ML
-    # if not cfg.trainer.fast_dev_run:
-    #     logger.append(
-    #         CometLogger(save_dir=cfg.general.save_dir,
-    #                     workspace=cfg.general.workspace,
-    #                     project_name=cfg.general.project_name,
-    #                     api_key=cfg.private.comet_api,
-    #                     experiment_name=os.getcwd().split('\\')[-1])
-    #     )
-
-    trainer = pl.Trainer(logger=logger,
-                         callbacks=[early_stopping, lr_monitor], #, gpu_monitor],
-                         # nb_sanity_val_steps=0,
-                         # gradient_clip_val=0.5,
-                         **cfg.trainer)
-    # BUG: trainer.tune(model)
-
-    trainer.fit(model)
-
-    # test
-    trainer.test(model)
-    export_to_submission(
-        cfg.data.root_path,
-        model.submission.preds)
-
-    # save as a simple torch model
-    backslash = '\\'
-    model_name = f"{os.getcwd().split(backslash)[-1]}.pth"
-    torch.save(model.model.state_dict(), model_name)
-
-
-@hydra.main(config_path="conf", config_name="config")
-def run_model(cfg: DictConfig) -> None:
-    print(OmegaConf.to_yaml(cfg))
-    save_useful_info()
-    run(cfg)
+    # Train model
+    return train(config)
 
 
 if __name__ == "__main__":
-    run_model()
+    main()

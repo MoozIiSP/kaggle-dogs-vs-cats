@@ -1,3 +1,0 @@
-# @package _group_
-class_name: torch.nn.functional.cross_entropy
-params:

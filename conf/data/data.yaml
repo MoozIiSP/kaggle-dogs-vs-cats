@@ -1,8 +1,0 @@
-# @package _group_
-root_path: /home/mooziisp/Datasets/dogs-vs-cats-redux-kernels-edition
-categories:
-  dog: 1
-  cat: 0
-num_classes: 2
-num_workers: 4
-batch_size: 64

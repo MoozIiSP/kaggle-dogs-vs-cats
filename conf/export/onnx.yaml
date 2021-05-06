@@ -1,7 +1,0 @@
-# @package _group_
-input_dim: 1
-device: cpu
-input_tags:
-  - input
-output_tags: 
-  - output

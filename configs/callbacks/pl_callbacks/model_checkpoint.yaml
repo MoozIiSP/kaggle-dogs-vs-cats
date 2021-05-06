@@ -1,0 +1,5 @@
+model_checkpoint:
+  _target_: pl.callbacks.ModelCheckpoint
+  monitor: "val/acc"
+  save_top_k: 1
+  filepath: saved_models/

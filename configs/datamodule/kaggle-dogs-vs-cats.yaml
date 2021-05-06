@@ -1,0 +1,32 @@
+datasets:
+  _target_: project.datamodules.kaggle_dogs_vs_cats_datamodule.DogCatDataModule
+  data_dir: ${data_dir}/dogs-vs-cats-redux-kernels-edition  # data_dir is specified in config.yaml
+  n_channels: 3
+  crop_size: 224
+  num_classes: 2
+  categories:
+    cat: 0
+    dog: 1
+  batch_size: 64
+  num_workers: 8
+  pin_memory: False  # BUG?
+transforms:
+  type: torchvision
+  train:
+    - _target_: torchvision.transforms.RandomResizedCrop
+      size: 
+        - ${datamodule.datasets.crop_size}
+        - ${datamodule.datasets.crop_size}
+      scale: [0.08, 1.0]
+      ratio: [0.75, 1.333]
+    - _target_: torchvision.transforms.RandomVerticalFlip
+      p: 0.5
+    - _target_: torchvision.transforms.RandomHorizontalFlip
+      p: 0.5
+    - _target_: torchvision.transforms.ToTensor
+  eval:
+    - _target_: torchvision.transforms.Resize
+      size: 
+        - ${datamodule.datasets.crop_size}
+        - ${datamodule.datasets.crop_size}
+    - _target_: torchvision.transforms.ToTensor

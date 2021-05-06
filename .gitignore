@@ -6,10 +6,18 @@ _dirs-locals.el
 .idea
 .vscode
 .mypy_cache
+.pytest_cache
 
-# Misc
-outputs/*
-!outputs/
+# No venv
+venv
+
+# No Log
+logs
+wandb
+
+# No Dataset
+datasets/*
+!datasets/.gitkeep
 
 # No Python cache
 .ipynb_checkpoints

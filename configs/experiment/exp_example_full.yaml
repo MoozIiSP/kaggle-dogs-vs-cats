@@ -1,0 +1,139 @@
+# @package _global_
+
+# to execute this experiment run:
+# python run.py +experiment=exp_example_full
+
+defaults:
+    - override /trainer: null  # override trainer to null so it's not loaded from main config defaults...
+    - override /model: null
+    - override /datamodule: null
+    - override /callbacks: null
+    - override /logger: null
+
+    - override /hydra/sweeper: optuna
+
+# we override default configurations with nulls to prevent them from loading at all
+# instead we define all modules and their paths directly in this config,
+# so everything is stored in one place for more readibility
+
+# seed: ${seed}
+metric_monitor: "val/acc"
+
+# Trainer Setting
+trainer:
+    _target_: pytorch_lightning.Trainer
+    gpus: 1
+    min_epochs: 1
+    max_epochs: 20
+    gradient_clip_val: 0.5
+    accumulate_grad_batches: 2
+    weights_summary: null
+    # resume_from_checkpoint: ${work_dir}/last.ckpt
+
+# Model Setting including which optimizer, scheduler, and loss to use.
+model:
+  net:
+    _target_: project.models.classifier_model.ClassifierLitModel
+    name: resnet18
+    num_classes: ${datamodule.datasets.num_classes}
+    extra_cfg: null
+  transfer: # null
+    pretrained: True
+    bn_trainable: True
+    depth: 9 #9
+    in_channels: ${datamodule.datasets.n_channels}
+    in_size:
+      - ${datamodule.datasets.crop_size}
+      - ${datamodule.datasets.crop_size}
+    head:
+      num_channels: null
+      layers: null
+      #   - _target_: torch.nn.Linear
+      #     in_features: -1  # placeholder
+      #     out_features: ${model.net.num_classes}
+      last_act: 
+        _target_: torch.nn.Softmax
+        dim: 1
+  optimizer:
+    lr: 0.01
+    groups:
+      - optim: 
+          _target_: torch.optim.SGD
+          lr: ${model.optimizer.lr}
+          momentum: 0.9
+          weight_decay: 0.0005
+        sched: 
+          _target_: torch.optim.lr_scheduler.CosineAnnealingWarmRestarts
+          T_0: 1
+          T_mult: 1
+          eta_min: 0
+          last_epoch: -1
+  loss:  # FIXME: maybe we shouldn't use configuration for loss function, because of every task has its loss function to optimize the model.
+    - _target_: torch.nn.CrossEntropyLoss
+
+# Datamodule which datasets would to use.
+datamodule:
+  datasets:
+    _target_: project.datamodules.kaggle_dogs_vs_cats_datamodule.DogCatDataModule
+    data_dir: ${data_dir}/dogs-vs-cats-redux-kernels-edition  # data_dir is specified in config.yaml
+    n_channels: 3
+    crop_size: 224
+    num_classes: 2
+    categories:
+      cat: 0
+      dog: 1
+    batch_size: 64
+    num_workers: 8
+    pin_memory: False  # BUG?
+  transforms:
+    type: torchvision
+    train:
+      - _target_: torchvision.transforms.RandomResizedCrop
+        size: 
+          - ${datamodule.datasets.crop_size}
+          - ${datamodule.datasets.crop_size}
+        scale: [0.08, 1.0]
+        ratio: [0.75, 1.333]
+      - _target_: torchvision.transforms.RandomVerticalFlip
+        p: 0.5
+      - _target_: torchvision.transforms.RandomHorizontalFlip
+        p: 0.5
+      - _target_: torchvision.transforms.ToTensor
+    eval:
+      - _target_: torchvision.transforms.Resize
+        size: 
+          - ${datamodule.datasets.crop_size}
+          - ${datamodule.datasets.crop_size}
+      - _target_: torchvision.transforms.ToTensor
+
+callbacks:
+  model_checkpoint:
+    _target_: pytorch_lightning.callbacks.ModelCheckpoint
+    monitor: "val/acc"
+    save_top_k: 1
+    save_last: True
+    mode: "max"
+    dirpath: 'checkpoints/'
+    filename: 'sample-mnist-{epoch:02d}'
+  early_stopping:
+    _target_: pytorch_lightning.callbacks.EarlyStopping
+    monitor: "val/acc"
+    patience: 5
+    mode: "max"
+  lr_monitor:
+    _target_: pytorch_lightning.callbacks.LearningRateMonitor
+    logging_interval: null
+
+logger:
+    wandb:
+      _target_: pytorch_lightning.loggers.wandb.WandbLogger
+      project: "kaggle-dogs-vs-cats"
+      # entity: ""  # set to name of your wandb team or just remove it
+      # offline: False  # set True to store all logs only locally
+      job_type: "train"
+      group: ""
+      save_dir: "."
+    # neptune:
+    #     tags: ["best_model"]
+    # csv_logger:
+    #     save_dir: "."

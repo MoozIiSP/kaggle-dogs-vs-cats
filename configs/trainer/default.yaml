@@ -1,0 +1,11 @@
+gpus: 1
+precision: 32
+#amp_level: O2
+max_epochs: 50 #5
+# weights_summary: full  # default
+# track_grad_norm: 2 # tracking grad norm when training
+# log_gpu_memory: True # conflict with GPU Monitor Callbacks?
+check_val_every_n_epoch: 5
+# overfit_batches: 1
+# Train Trick
+# auto_scale_batch_size: power # binearch | none

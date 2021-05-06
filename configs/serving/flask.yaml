@@ -1,0 +1,7 @@
+# 
+host: 127.0.0.1
+port: 8080
+debug: True
+loader: project.serving.inference.onnxruntime_loader
+# should not be default
+onnx_model: /home/mooziisp/GitRepos/kaggle-dogs-vs-cats/outputs/2021-01-04/16-00-28/resnet50-cats-vs-dogs-cpu.onnx
